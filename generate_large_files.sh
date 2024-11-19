@@ -1,15 +1,15 @@
 #!/bin/bash
 # generate_large_files.sh
-# This script generates a specified number of large files with random content.
+# This script generates large files with random content of varying sizes.
 
-NUM_FILES=5
-FILE_SIZE_MB=100
 OUTPUT_DIR="large_files"
+FILE_SIZES_MB=(50 100 200 300 500)  # Different file sizes in MB
 
 mkdir -p $OUTPUT_DIR
 
-for i in $(seq 1 $NUM_FILES); do
-    dd if=/dev/urandom of=$OUTPUT_DIR/large_file_$i bs=1M count=$FILE_SIZE_MB
+for i in "${!FILE_SIZES_MB[@]}"; do
+    FILE_SIZE_MB=${FILE_SIZES_MB[$i]}
+    dd if=/dev/urandom of=$OUTPUT_DIR/large_file_$((i+1)) bs=1M count=$FILE_SIZE_MB
 done
 
-echo "Generated $NUM_FILES large files of size $FILE_SIZE_MB MB each in $OUTPUT_DIR."
+echo "Generated large files of varying sizes in $OUTPUT_DIR."

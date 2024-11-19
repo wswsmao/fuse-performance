@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <string.h>
 
 #define BUFFER_SIZE 4096
 
@@ -20,6 +21,12 @@ void measure_read_time(const char *filename, int sequential) {
     ssize_t bytes_read;
     struct timeval start, end;
     double elapsed_time;
+
+    if (posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED) != 0) {
+        perror("Failed to set posix_fadvise");
+        close(fd);
+        return;
+    }
 
     gettimeofday(&start, NULL);
 
@@ -39,7 +46,7 @@ void measure_read_time(const char *filename, int sequential) {
     elapsed_time = (end.tv_sec - start.tv_sec) * 1000.0;
     elapsed_time += (end.tv_usec - start.tv_usec) / 1000.0;
 
-    printf("Time taken to read file %s (%s): %.2f ms\n", filename, sequential ? "sequential" : "random", elapsed_time);
+    printf("File: %s, Mode: %s, Time: %.2f ms\n", filename, sequential ? "sequential" : "random", elapsed_time);
 
     close(fd);
 }
