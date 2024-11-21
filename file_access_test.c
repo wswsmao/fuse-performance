@@ -9,6 +9,7 @@
 #include <string.h>
 
 #define BUFFER_SIZE 4096
+#define SEED_VALUE 42
 
 void measure_read_time(const char *filename, int sequential) {
     int fd = open(filename, O_RDONLY);
@@ -21,6 +22,7 @@ void measure_read_time(const char *filename, int sequential) {
     ssize_t bytes_read;
     struct timeval start, end;
     double elapsed_time;
+    int read_count = 0;
 
     if (posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED) != 0) {
         perror("Failed to set posix_fadvise");
@@ -32,13 +34,16 @@ void measure_read_time(const char *filename, int sequential) {
 
     if (sequential) {
         // Sequential read
-        while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0);
+        while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
+            read_count++;
+        }
     } else {
-        // Random read
         off_t file_size = lseek(fd, 0, SEEK_END);
+        srand(SEED_VALUE);
         for (off_t offset = 0; offset < file_size; offset += BUFFER_SIZE) {
             lseek(fd, rand() % file_size, SEEK_SET);
             read(fd, buffer, BUFFER_SIZE);
+            read_count++;
         }
     }
 
@@ -46,7 +51,7 @@ void measure_read_time(const char *filename, int sequential) {
     elapsed_time = (end.tv_sec - start.tv_sec) * 1000.0;
     elapsed_time += (end.tv_usec - start.tv_usec) / 1000.0;
 
-    printf("File: %s, Mode: %s, Time: %.2f ms\n", filename, sequential ? "sequential" : "random", elapsed_time);
+    printf("File: %s, Mode: %s, Time: %.2f ms, Read Calls: %d\n", filename, sequential ? "sequential" : "random", elapsed_time, read_count);
 
     close(fd);
 }

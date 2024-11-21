@@ -14,7 +14,7 @@ all: generate_files compile_tests run_tests
 # Target to generate large files
 generate_files:
 	@echo "Generating large files..."
-	@bash $(GENERATE_SCRIPT)
+	@bash $(GENERATE_SCRIPT) 30 3
 
 # Target to compile the test program
 compile_tests:

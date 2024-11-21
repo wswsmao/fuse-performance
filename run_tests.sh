@@ -7,18 +7,40 @@ TEST_PROGRAM="./file_access_test"
 REPORT_FILE="performance_report.txt"
 
 echo "Running file access tests..."
-echo "Performance Report" > $REPORT_FILE
-echo "==================" >> $REPORT_FILE
+echo "Sequential Read Performance Report" > $REPORT_FILE
+echo "=================================" >> $REPORT_FILE
+printf "%-20s %-20s %-20s %-20s\n" "File" "Size (MB)" "Read Calls" "Time (ms)" >> $REPORT_FILE
+printf "%-20s %-20s %-20s %-20s\n" "----" "--------" "----------" "--------" >> $REPORT_FILE
 
-for file in $OUTPUT_DIR/*; do
+for file in $OUTPUT_DIR/sequential_file_*; do
     echo "Testing file: $file"
-    SEQ_TIME=$($TEST_PROGRAM $file sequential | awk '{print $6}')
-    RAND_TIME=$($TEST_PROGRAM $file random | awk '{print $6}')
-    echo "File: $(basename $file)" >> $REPORT_FILE
-    echo "  Sequential Read Time: $SEQ_TIME ms" >> $REPORT_FILE
-    echo "  Random Read Time: $RAND_TIME ms" >> $REPORT_FILE
-    echo "--------------------------" >> $REPORT_FILE
+    FILE_SIZE=$(ls -lh $file | awk '{print $5}' | sed 's/[A-Za-z]*//g')
+    SEQ_RESULT=$($TEST_PROGRAM $file sequential)
+
+    SEQ_TIME=$(echo $SEQ_RESULT | awk '{print $6}')
+    SEQ_CALLS=$(echo $SEQ_RESULT | awk '{print $10}')
+
+    printf "%-20s %-20s %-20s %-20s\n" "$(basename $file)" "$FILE_SIZE" "$SEQ_CALLS" "$SEQ_TIME" >> $REPORT_FILE
 done
 
+echo "" >> $REPORT_FILE
+echo "Random Read Performance Report" >> $REPORT_FILE
+echo "==============================" >> $REPORT_FILE
+printf "%-20s %-20s %-20s %-20s\n" "File" "Size (MB)" "Read Calls" "Time (ms)" >> $REPORT_FILE
+printf "%-20s %-20s %-20s %-20s\n" "----" "--------" "----------" "--------" >> $REPORT_FILE
+
+for file in $OUTPUT_DIR/random_file_*; do
+    echo "Testing file: $file"
+    FILE_SIZE=$(ls -lh $file | awk '{print $5}' | sed 's/[A-Za-z]*//g')
+    RAND_RESULT=$($TEST_PROGRAM $file random)
+
+    RAND_TIME=$(echo $RAND_RESULT | awk '{print $6}')
+    RAND_CALLS=$(echo $RAND_RESULT | awk '{print $10}')
+
+    printf "%-20s %-20s %-20s %-20s\n" "$(basename $file)" "$FILE_SIZE" "$RAND_CALLS" "$RAND_TIME" >> $REPORT_FILE
+done
+
+echo ""
 cat $REPORT_FILE
+echo ""
 echo "Tests completed. See $REPORT_FILE for details."
