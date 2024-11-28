@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <string.h>
 
+#define BUFFER_SIZE 4096
 #define SEED_VALUE 42
 
 // Function to wait for a specified amount of time
@@ -28,20 +29,15 @@ static off_t calculate_next_offset(off_t current_offset, off_t file_size) {
     return (a * current_offset + c) % m;
 }
 
-void measure_read_time(const char *filename, int sequential, size_t buffer_size, int use_odirect) {
-    int flags = O_RDONLY;
-    if (use_odirect) {
-        flags |= O_DIRECT;
-    }
-
-    int fd = open(filename, flags);
+void measure_read_time(const char *filename, int sequential) {
+    int fd = open(filename, O_RDONLY | O_DIRECT);
     if (fd < 0) {
         perror("Failed to open file");
         return;
     }
 
     void *buffer;
-    if (posix_memalign(&buffer, buffer_size, buffer_size) != 0) {
+    if (posix_memalign(&buffer, BUFFER_SIZE, BUFFER_SIZE) != 0) {
         perror("posix_memalign");
         close(fd);
         return;
@@ -61,7 +57,7 @@ void measure_read_time(const char *filename, int sequential, size_t buffer_size,
 
     if (sequential) {
         // Sequential read
-        while ((bytes_read = read(fd, buffer, buffer_size)) > 0) {
+        while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
             read_count++;
         }
     } else {
@@ -69,10 +65,10 @@ void measure_read_time(const char *filename, int sequential, size_t buffer_size,
         off_t file_size = lseek(fd, 0, SEEK_END);
         off_t offset = 0;
 
-        for (off_t i = 0; i < file_size / buffer_size; i++) {
+        for (off_t i = 0; i < file_size / BUFFER_SIZE; i++) {
             offset = calculate_next_offset(offset, file_size);
             lseek(fd, offset, SEEK_SET);
-            read(fd, buffer, buffer_size);
+            read(fd, buffer, BUFFER_SIZE);
             read_count++;
         }
     }
@@ -88,19 +84,17 @@ void measure_read_time(const char *filename, int sequential, size_t buffer_size,
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 6) {
-        fprintf(stderr, "Usage: %s <filename> <sequential|random> <wait_time> <buffer_size> <use_odirect>\n", argv[0]);
+    if (argc < 4) {
+        fprintf(stderr, "Usage: %s <filename> <sequential|random> <wait_time>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     int sequential = (strcmp(argv[2], "sequential") == 0);
-    int wait_time = atoi(argv[3]);
-    size_t buffer_size = (size_t)atoi(argv[4]);
-    int use_odirect = atoi(argv[5]);
 
+    int wait_time = atoi(argv[3]);
     wait_before_run(wait_time);
 
-    measure_read_time(argv[1], sequential, buffer_size, use_odirect);
+    measure_read_time(argv[1], sequential);
 
     return EXIT_SUCCESS;
 }

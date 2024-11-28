@@ -15,7 +15,7 @@ printf "%-20s %-20s %-20s %-20s\n" "----" "--------" "----------" "--------" >> 
 for file in $OUTPUT_DIR/sequential_file_*; do
     echo "Testing file: $file"
     FILE_SIZE=$(ls -lh $file | awk '{print $5}' | sed 's/[A-Za-z]*//g')
-    SEQ_RESULT=$($TEST_PROGRAM $file sequential)
+    SEQ_RESULT=$($TEST_PROGRAM $file sequential 0)
 
     SEQ_TIME=$(echo $SEQ_RESULT | awk '{print $6}')
     SEQ_CALLS=$(echo $SEQ_RESULT | awk '{print $10}')
@@ -32,7 +32,7 @@ printf "%-20s %-20s %-20s %-20s\n" "----" "--------" "----------" "--------" >> 
 for file in $OUTPUT_DIR/random_file_*; do
     echo "Testing file: $file"
     FILE_SIZE=$(ls -lh $file | awk '{print $5}' | sed 's/[A-Za-z]*//g')
-    RAND_RESULT=$($TEST_PROGRAM $file random)
+    RAND_RESULT=$($TEST_PROGRAM $file random 0)
 
     RAND_TIME=$(echo $RAND_RESULT | awk '{print $6}')
     RAND_CALLS=$(echo $RAND_RESULT | awk '{print $10}')
