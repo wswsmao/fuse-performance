@@ -4,8 +4,12 @@ WORKDIR /app
 
 COPY file_access_test /app/
 COPY large_files /app/large_files
-COPY run_tests.sh /app/
+COPY run_contain_tests.sh /app/
 
-RUN chmod +x /app/run_tests.sh
+# delay random test.
+# it need large files, which will cost long time
+RUN rm -rf /app/large_files/random
 
-CMD ["bash", "/app/run_tests.sh"]
+RUN chmod +x /app/run_contain_tests.sh
+
+CMD ["bash", "/app/run_contain_tests.sh"]

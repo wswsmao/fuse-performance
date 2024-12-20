@@ -5,7 +5,7 @@ OUTPUT_DIR = large_files
 TEST_PROGRAM = file_access_test
 SOURCE_FILE = file_access_test.c
 GENERATE_SCRIPT = generate_large_files.sh
-RUN_TEST_SCRIPT = run_tests.sh
+RUN_TEST_SCRIPT = run_contain_tests.sh
 REPORT_FILE = performance_report.txt
 
 # Default target
