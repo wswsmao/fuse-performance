@@ -30,7 +30,12 @@ int main(int argc, char *argv[]) {
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-    ssize_t bytes_read = read(fd, buf, BUFFER_SIZE);
+    ssize_t bytes_read;
+    size_t total_bytes_read = 0;
+
+    while ((bytes_read = read(fd, buf, BUFFER_SIZE)) > 0) {
+        total_bytes_read += bytes_read;
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
@@ -42,7 +47,8 @@ int main(int argc, char *argv[]) {
     }
 
     long elapsed_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-    printf("%ld\n", elapsed_us);
+    printf("Total bytes read: %zu\n", total_bytes_read);
+    printf("Total time: %ld microseconds\n", elapsed_us);
 
     free(buf);
     close(fd);
